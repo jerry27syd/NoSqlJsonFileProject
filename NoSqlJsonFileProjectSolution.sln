@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSqlJsonFileProject", "NoSQLJSONFileProject\NoSqlJsonFileProject.csproj", "{44489FED-EE02-409E-9601-93FFFE8FFBCD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleDemo", "ConsoleDemo\ConsoleDemo.csproj", "{B3C08643-1AF3-4480-BBCB-C92FE90673B4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{44489FED-EE02-409E-9601-93FFFE8FFBCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44489FED-EE02-409E-9601-93FFFE8FFBCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44489FED-EE02-409E-9601-93FFFE8FFBCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44489FED-EE02-409E-9601-93FFFE8FFBCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3C08643-1AF3-4480-BBCB-C92FE90673B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3C08643-1AF3-4480-BBCB-C92FE90673B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3C08643-1AF3-4480-BBCB-C92FE90673B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3C08643-1AF3-4480-BBCB-C92FE90673B4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
