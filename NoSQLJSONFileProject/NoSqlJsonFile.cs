@@ -84,12 +84,12 @@ namespace NoSqlJsonFileProject
         [DataMember]
         public bool Modified { get; set; }
 
-        public FileInfo GetFileId()
+        public FileInfo GetUniqueFile()
         {
             return new FileInfo(Path.Combine(DefaultDirectory.FullName, UniqueId));
         }
 
-        public static FileInfo GetFileId(string uniqueId)
+        public static FileInfo GetUniqueFile(string uniqueId)
         {
             return new FileInfo(Path.Combine(DefaultDirectory.FullName, uniqueId));
         }
@@ -100,7 +100,7 @@ namespace NoSqlJsonFileProject
         /// <returns></returns>
         public bool Exists()
         {
-            FileInfo fileId = GetFileId();
+            FileInfo fileId = GetUniqueFile();
             return fileId.Exists;
         }
         /// <summary>
@@ -432,12 +432,12 @@ namespace NoSqlJsonFileProject
         /// </summary>
         public void Delete()
         {
-            GetFileId().Delete();
+            GetUniqueFile().Delete();
         }
 
         public static void Delete(string uniqueId)
         {
-            FileInfo fileId = GetFileId(uniqueId);
+            FileInfo fileId = GetUniqueFile(uniqueId);
             fileId.Delete();
         }
 
@@ -508,21 +508,20 @@ namespace NoSqlJsonFileProject
 
         #endregion
 
-        #region Serailise To File
+        #region Serialize To File
         protected object Deserialize()
         {
-            FileInfo fileId = GetFileId();
-            return DeserializeFromFile(this, fileId);
+            return DeserializeFromFile(this, GetUniqueFile());
         }
 
         protected void Serialize()
         {
-            FileInfo fileId = GetFileId();
-            SerializeToFile(this, fileId);
+            SerializeToFile(this, GetUniqueFile());
         }
 
         protected static void SerializeToFile(object obj, FileInfo fileId)
         {
+            //TODO: if permission denied, it could break.
             CreateDirectoryIfNotExists(fileId.Directory);
             File.WriteAllText(fileId.FullName, ToJson(obj));
         }
