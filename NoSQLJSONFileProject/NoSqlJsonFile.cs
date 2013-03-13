@@ -32,7 +32,7 @@ namespace NoSqlJsonFileProject
         public NoSqlJsonFile()
         {
             DateModfied = DateTime.Now;
-            UniqueId = GetType().Name + Guid.NewGuid().ToString().Replace("-", "").ToUpper();
+            UniqueId = GetType().Name + Guid.NewGuid().ToString().Replace("-", "").ToUpper();// for instnace: Employee94554F9D47E0425B97EBC13614F36CD5
         }
 
         static NoSqlJsonFile()
@@ -47,15 +47,21 @@ namespace NoSqlJsonFileProject
         public DateTime DateModfied { get; set; }
 
         /// <summary>
-        /// Experiment Feature.
-        /// </summary>
-        public static bool SaveOptimizationEnable { get; set; }
-
-        /// <summary>
         ///  UniqueId is a unique number for each file created.
         /// </summary>
         [DataMember]
         public string UniqueId { get; set; }
+
+        /// <summary>
+        /// This feature is experiment feature.
+        /// </summary>
+        [DataMember]
+        public bool Modified { get; set; }
+
+        /// <summary>
+        /// Experiment Feature.
+        /// </summary>
+        public static bool SaveOptimizationEnable { get; set; }
 
         public static DirectoryInfo DefaultDirectory
         {
@@ -73,65 +79,9 @@ namespace NoSqlJsonFileProject
         }
 
         /// <summary>
-        /// Delete current file only. 
+        /// Check to see if the file is created.
         /// </summary>
-        public void Delete()
-        {
-            GetFileId().Delete();
-        }
-
-        public void DeleteCascade()
-        {
-            DeleteRecursive(this);
-        }
-
-        /// <summary>
-        /// Static method of DeleteCascade.
-        /// </summary>
-        /// <param name="uniqueId"></param>
-        public static void DeleteCascade(string uniqueId)
-        {
-            var t = new T();
-            t.GetType().GetProperty("UniqueId").SetValue(t, uniqueId, null);
-            GetBreathFirst(t);
-            t.GetType()
-             .GetMethod("DeleteCascade", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public)
-             .Invoke(t, null);
-        }
-
-        public void DeleteRecursive(object obj)
-        {
-            if (ReflectionBaseTypeCompare(obj.GetType(), typeof(NoSqlJsonFile<>)))
-            {
-                foreach (PropertyInfo propertyInfo in obj.GetType().GetProperties())
-                {
-                    if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(NoSqlJsonFile<>)))
-                    {
-                        object item = propertyInfo.GetValue(obj, null);
-                        if (item != null)
-                        {
-                            DeleteRecursive(item);
-                        }
-                    }
-                    else if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(List<>)) ||
-                             ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(ObservableCollection<>)))
-                    {
-                        var list = (IList) propertyInfo.GetValue(obj, null);
-                        if (list != null)
-                        {
-                            foreach (object item in list)
-                            {
-                                DeleteRecursive(item);
-                            }
-                        }
-                    }
-                }
-                obj.GetType()
-                   .GetMethod("Delete", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public)
-                   .Invoke(obj, null);
-            }
-        }
-
+        /// <returns></returns>
         public bool Exists()
         {
             FileInfo fileId = GetFileId();
@@ -148,6 +98,8 @@ namespace NoSqlJsonFileProject
             return fileId.Exists;
         }
 
+        #region Get
+
         public void Get()
         {
             try
@@ -160,25 +112,6 @@ namespace NoSqlJsonFileProject
             }
         }
 
-        public void Save(bool checkModified = false)
-        {
-            DateModfied = DateTime.Now;
-            SaveRecursive(this, checkModified);
-            if (SaveOptimizationEnable) Get();
-        }
-
-        public void SaveIfModified()
-        {
-            SaveRecursive(this, true);
-            if (SaveOptimizationEnable) Get();
-        }
-
-        public static void Delete(string uniqueId)
-        {
-            FileInfo fileId = GetFileId(uniqueId);
-            fileId.Delete();
-        }
-
         public static T Get(string uniqueId)
         {
             var t = new T();
@@ -187,26 +120,66 @@ namespace NoSqlJsonFileProject
             return t;
         }
 
-        public static void Save(NoSqlJsonFile<T> t, bool checkModified = false)
+        protected static void GetBreathFirst(object obj)
         {
-            SaveRecursive(t, checkModified);
-        }
-
-        public static void SaveIfModified(NoSqlJsonFile<T> t)
-        {
-            SaveRecursive(t, true);
-        }
-
-        public static void CleanDirectory()
-        {
-            DirectoryInfo dir = DefaultDirectory;
-            foreach (FileInfo fileId in dir.GetFiles())
+            object val =
+                obj.GetType()
+                   .GetMethod("Deserialize", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
+                   .Invoke(obj, null);
+            CopyObject(val, ref obj);
+            var rootQueue = new Queue<object>();
+            EnqueueChildren(obj, rootQueue);
+            while (rootQueue.Count > 0)
             {
-                fileId.Delete();
+                object next = rootQueue.Dequeue();
+
+                if (ReflectionBaseTypeCompare(next.GetType(), typeof(NoSqlJsonFile<>)))
+                {
+                    object newObj =
+                   next.GetType()
+                       .GetMethod("Deserialize",
+                                  BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
+                       .Invoke(next, null);
+                    CopyObject(newObj, ref next);
+
+                }
+
+                EnqueueChildren(next, rootQueue);
             }
         }
 
-        #region Listing Implmentation
+        protected static void EnqueueChildren(object obj, Queue<object> rootQueue)
+        {
+            if (ReflectionBaseTypeCompare(obj.GetType(), typeof(NoSqlJsonFile<>)))
+            {
+                foreach (PropertyInfo propertyInfo in obj.GetType().GetProperties())
+                {
+                    if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(NoSqlJsonFile<>)))
+                    {
+                        object item = propertyInfo.GetValue(obj, null);
+                        if (item != null)
+                        {
+                            rootQueue.Enqueue(item);
+                        }
+                    }
+                    else if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(List<>)) ||
+                             ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(ObservableCollection<>)))
+                    {
+                        var list = (IList) propertyInfo.GetValue(obj, null);
+                        if (list != null)
+                        {
+                            foreach (object item in list)
+                            {
+                                rootQueue.Enqueue(item);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        #endregion
+
+        #region List
         public static List<T> List()
         {
             var resultList = new List<T>();
@@ -352,65 +325,29 @@ namespace NoSqlJsonFileProject
         }
         #endregion
 
-        #region Read Implmenation
-        protected static void GetBreathFirst(object obj)
+        #region Save
+        public static void Save(NoSqlJsonFile<T> t)
         {
-            object val =
-                obj.GetType()
-                   .GetMethod("Deserialize", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
-                   .Invoke(obj, null);
-            CopyObject(val, ref obj);
-            var rootQueue = new Queue<object>();
-            EnqueueChildren(obj, rootQueue);
-            while (rootQueue.Count > 0)
-            {
-                object next = rootQueue.Dequeue();
-
-                if (ReflectionBaseTypeCompare(next.GetType(), typeof(NoSqlJsonFile<>)))
-                {
-                    object newObj =
-                   next.GetType()
-                       .GetMethod("Deserialize",
-                                  BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
-                       .Invoke(next, null);
-                    CopyObject(newObj, ref next);
-
-                }
-
-                EnqueueChildren(next, rootQueue);
-            }
+            t.DateModfied = DateTime.Now;
+            SaveRecursive(t, false);
         }
 
-        protected static void EnqueueChildren(object obj, Queue<object> rootQueue)
+        public void Save()
         {
-            if (ReflectionBaseTypeCompare(obj.GetType(), typeof(NoSqlJsonFile<>)))
-            {
-                foreach (PropertyInfo propertyInfo in obj.GetType().GetProperties())
-                {
-                    if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(NoSqlJsonFile<>)))
-                    {
-                        object item = propertyInfo.GetValue(obj, null);
-                        if (item != null)
-                        {
-                            rootQueue.Enqueue(item);
-                        }
-                    }
-                    else if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(List<>)) ||
-                             ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(ObservableCollection<>)))
-                    {
-                        var list = (IList) propertyInfo.GetValue(obj, null);
-                        if (list != null)
-                        {
-                            foreach (object item in list)
-                            {
-                                rootQueue.Enqueue(item);
-                            }
-                        }
-                    }
-                }
-            }
+            DateModfied = DateTime.Now;
+            SaveRecursive(this, false);
+            if (SaveOptimizationEnable) Get();
         }
-        #endregion
+
+        public void SaveIfModified()
+        {
+            SaveRecursive(this, true);
+            if (SaveOptimizationEnable) Get();
+        }
+        public static void SaveIfModified(NoSqlJsonFile<T> t)
+        {
+            SaveRecursive(t, true);
+        }
 
         /// <summary>
         /// Recursive implmentation of Save function.
@@ -454,10 +391,12 @@ namespace NoSqlJsonFileProject
                 {
                     var modified = (bool) obj.GetType().GetProperty("Modified").GetValue(obj, null);
                     if (modified)
+                    {
                         obj.GetType()
-                           .GetMethod("Serialize",
-                                      BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
-                           .Invoke(obj, null);
+                            .GetMethod("Serialize",
+                                       BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
+                            .Invoke(obj, null);
+                    }
                 }
                 else
                 {
@@ -469,6 +408,91 @@ namespace NoSqlJsonFileProject
             }
         }
 
+        #endregion
+
+        #region Delete
+        /// <summary>
+        /// Delete current file only. 
+        /// </summary>
+        public void Delete()
+        {
+            GetFileId().Delete();
+        }
+
+        public static void Delete(string uniqueId)
+        {
+            FileInfo fileId = GetFileId(uniqueId);
+            fileId.Delete();
+        }
+
+        public void DeleteCascade()
+        {
+            DeleteRecursive(this);
+        }
+
+        /// <summary>
+        /// Static method of DeleteCascade.
+        /// </summary>
+        /// <param name="uniqueId"></param>
+        public static void DeleteCascade(string uniqueId)
+        {
+            var t = new T();
+            t.GetType().GetProperty("UniqueId").SetValue(t, uniqueId, null);
+            GetBreathFirst(t);
+            t.GetType()
+             .GetMethod("DeleteCascade", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public)
+             .Invoke(t, null);
+        }
+
+        public void DeleteRecursive(object obj)
+        {
+            if (ReflectionBaseTypeCompare(obj.GetType(), typeof(NoSqlJsonFile<>)))
+            {
+                foreach (PropertyInfo propertyInfo in obj.GetType().GetProperties())
+                {
+                    if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(NoSqlJsonFile<>)))
+                    {
+                        object item = propertyInfo.GetValue(obj, null);
+                        if (item != null)
+                        {
+                            DeleteRecursive(item);
+                        }
+                    }
+                    else if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(List<>)) ||
+                             ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(ObservableCollection<>)))
+                    {
+                        var list = (IList) propertyInfo.GetValue(obj, null);
+                        if (list != null)
+                        {
+                            foreach (object item in list)
+                            {
+                                DeleteRecursive(item);
+                            }
+                        }
+                    }
+                }
+                obj.GetType()
+                   .GetMethod("Delete", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public)
+                   .Invoke(obj, null);
+            }
+        }
+
+
+        /// <summary>
+        /// Delete All will delete all files for a signle calss. Note: it does not do any cascading delete, it simply just deletes a directory.
+        /// </summary>
+        public static void DeleteAll()
+        {
+            DirectoryInfo dir = DefaultDirectory;
+            foreach (FileInfo fileId in dir.GetFiles())
+            {
+                fileId.Delete();
+            }
+        }
+
+        #endregion
+
+        #region Serailise To File
         protected object Deserialize()
         {
             FileInfo fileId = GetFileId();
@@ -492,6 +516,36 @@ namespace NoSqlJsonFileProject
             object newObj = JsonToObject(File.ReadAllText(fileId.FullName), obj.GetType());
             return newObj;
         }
+
+        public static string ToJson(object value)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+
+            var serializer = new DataContractJsonSerializer(value.GetType());
+            using (var dataInMemory = new MemoryStream())
+            {
+                serializer.WriteObject(dataInMemory, value);
+                return Encoding.Default.GetString(dataInMemory.ToArray());
+            }
+        }
+
+        public static object JsonToObject(string xml, Type t)
+        {
+            if (xml == null || t == null)
+            {
+                return null;
+            }
+
+            using (var dataInMemory = new MemoryStream(Encoding.Default.GetBytes(xml)))
+            {
+                return new DataContractJsonSerializer(t).ReadObject(dataInMemory);
+            }
+        }
+
+        #endregion
 
         private static void CleanEntityContent(object obj)
         {
@@ -579,33 +633,6 @@ namespace NoSqlJsonFileProject
             }
         }
 
-        public static string ToJson(object value)
-        {
-            if (value == null)
-            {
-                return null;
-            }
-
-            var serializer = new DataContractJsonSerializer(value.GetType());
-            using (var dataInMemory = new MemoryStream())
-            {
-                serializer.WriteObject(dataInMemory, value);
-                return Encoding.Default.GetString(dataInMemory.ToArray());
-            }
-        }
-
-        public static object JsonToObject(string xml, Type t)
-        {
-            if (xml == null || t == null)
-            {
-                return null;
-            }
-
-            using (var dataInMemory = new MemoryStream(Encoding.Default.GetBytes(xml)))
-            {
-                return new DataContractJsonSerializer(t).ReadObject(dataInMemory);
-            }
-        }
     }
 
 }
