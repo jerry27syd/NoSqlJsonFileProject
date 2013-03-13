@@ -24,10 +24,10 @@ namespace ConsoleDemo
             Customer customer = new Customer();
             customer.FirstName = "Anna";
             customer.LastName = "Lee";
+            customer.Products = new List<Product>();
+            customer.Products.Add(new Product{ProductName = "Iphone4S", Price = "500.00"});
+            customer.Products.Add(new Product { ProductName = "HTC One", Price = "400.00" });
             customer.Save();
-
-
-            customer = Customer.Get("");
 
             Console.Read();
             Console.ReadKey();
@@ -52,6 +52,6 @@ namespace ConsoleDemo
         [DataMember]
         public string ProductName { get; set; }
         [DataMember]
-        public string Description { get; set; }
+        public string Price { get; set; }
     }
 }
