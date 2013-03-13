@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -24,21 +25,46 @@ namespace NoSqlJsonFileProject
     [DataContract]
     public class NoSqlJsonFile<T> where T : new()
     {
-        //THIS MUST BE SET MANUALLY
-        public static string FILE_PATH = @"c:\temp";
-        //Set it to false will increase speed but large storage, set it to true will slow down speed but with optimized storage
-        private static readonly DirectoryInfo _defaultDirectory = new DirectoryInfo(Path.Combine(FILE_PATH, typeof(T).Name));
+        /// <summary>
+        /// By default it is set to NoSqlJsonFiles filder in your application relative directory.
+        /// Add the following line to your App.config to set it to different path.
+        ///  <appSettings>
+        ///    <add key="FilePath" value="C:\temp"/>
+        ///  </appSettings>
+        /// </summary>
+        public static string FILE_PATH = ConfigurationManager.AppSettings["FilePath"] ?? @"NoSqlJsonFiles";
+        
+        /// <summary>
+        /// By default, alll files are stored under NoSqlJsonFiles\YourClass.
+        /// </summary>
+        private static  DirectoryInfo _defaultDirectory = new DirectoryInfo(Path.Combine(FILE_PATH, typeof(T).Name));
+        public static DirectoryInfo DefaultDirectory
+        {
+            get { return _defaultDirectory; }
+            set { _defaultDirectory = value; }
+        }
 
+        /// <summary>
+        /// Default Constructor to generate default ID.
+        /// </summary>
         public NoSqlJsonFile()
         {
             DateModfied = DateTime.Now;
             UniqueId = GetType().Name + Guid.NewGuid().ToString().Replace("-", "").ToUpper();// for instnace: Employee94554F9D47E0425B97EBC13614F36CD5
         }
 
+        /// <summary>
+        /// Static Constructor to initialise all static settings.
+        /// </summary>
         static NoSqlJsonFile()
         {
             SaveOptimizationEnable = false;
         }
+        
+        /// <summary>
+        /// Experiment Feature.
+        /// </summary>
+        public static bool SaveOptimizationEnable { get; set; }
 
         /// <summary>
         ///  Internal Date Stamp.
@@ -53,20 +79,10 @@ namespace NoSqlJsonFileProject
         public string UniqueId { get; set; }
 
         /// <summary>
-        /// This feature is experiment feature.
+        /// This feature is for experiment. 
         /// </summary>
         [DataMember]
         public bool Modified { get; set; }
-
-        /// <summary>
-        /// Experiment Feature.
-        /// </summary>
-        public static bool SaveOptimizationEnable { get; set; }
-
-        public static DirectoryInfo DefaultDirectory
-        {
-            get { return _defaultDirectory; }
-        }
 
         public FileInfo GetFileId()
         {
@@ -106,9 +122,9 @@ namespace NoSqlJsonFileProject
             {
                 GetBreathFirst(this);
             }
-            catch (IOException)
+            catch (IOException ex)
             {
-                throw new Exception("File Not Found.");
+                throw new IOException("File Not Found.", ex);
             }
         }
 
