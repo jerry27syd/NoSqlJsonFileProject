@@ -34,7 +34,7 @@ namespace NoSqlJsonFileProject
         ///  </appSettings>
         /// </summary>who 
         public static string FILE_PATH = ConfigurationManager.AppSettings["FilePath"] ?? @"NoSqlJsonFiles";
-        
+
         /// <summary>
         /// By default, alll files are stored under NoSqlJsonFiles\YourClass.
         /// </summary>
@@ -82,7 +82,6 @@ namespace NoSqlJsonFileProject
         /// <summary>
         /// This feature is for experiment. 
         /// </summary>
-        [DataMember]
         public bool Modified { get; set; }
 
         public FileInfo GetUniqueFile()
@@ -429,7 +428,7 @@ namespace NoSqlJsonFileProject
 
         #region Delete
         /// <summary>
-        /// Delete current file only. 
+        /// Delete current file. 
         /// </summary>
         public void Delete()
         {
@@ -461,7 +460,7 @@ namespace NoSqlJsonFileProject
              .Invoke(t, null);
         }
 
-        public void DeleteRecursive(object obj)
+        private void DeleteRecursive(object obj)
         {
             if (ReflectionBaseTypeCompare(obj.GetType(), typeof(NoSqlJsonFile<>)))
             {

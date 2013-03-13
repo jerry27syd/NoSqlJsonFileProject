@@ -14,40 +14,44 @@ namespace ConsoleDemo
         static void Main(string[] args)
         {
 
-            var list = Employee.Enumerable();
-            foreach (var employee in list)
+            List<Customer> customers = Customer.List();
+            foreach (Customer c in customers)
             {
-                foreach (var date in employee.Dates)
-                {
-                    Console.WriteLine(date);
-                }
+                Console.WriteLine(c.FirstName + " " + c.LastName);
             }
 
+
+            Customer customer = new Customer();
+            customer.FirstName = "Anna";
+            customer.LastName = "Lee";
+            customer.Save();
+
+
+            customer = Customer.Get("");
+
             Console.Read();
-
-            Employee e = new Employee();
-            e.FirstName = "Hello" + new Random().Next(100);
-            e.LastName = "World";
-            e.Dates = new List<DateTime>();
-            e.Dates.Add(DateTime.Now.AddDays(1d));
-            e.Dates.Add(DateTime.Now.AddDays(4d));
-            e.Dates.Add(DateTime.Now.AddDays(5d));
-            e.Save();
-
             Console.ReadKey();
         }
     }
 
 
     [DataContract]
-    class Employee : NoSqlJsonFile<Employee>
+    class Customer : NoSqlJsonFile<Customer>
     {
         [DataMember]
         public string FirstName { get; set; }
         [DataMember]
         public string LastName { get; set; }
         [DataMember]
-        public List<DateTime> Dates { get; set; }
+        public List<Product> Products { get; set; }
+    }
 
+    [DataContract]
+    class Product : NoSqlJsonFile<Product>
+    {
+        [DataMember]
+        public string ProductName { get; set; }
+        [DataMember]
+        public string Description { get; set; }
     }
 }
