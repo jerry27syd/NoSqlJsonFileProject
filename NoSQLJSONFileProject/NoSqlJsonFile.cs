@@ -40,7 +40,7 @@ namespace NoSqlJsonFileProject
         /// </summary>
         private static DirectoryInfo _defaultDirectory = new DirectoryInfo(Path.Combine(FILE_PATH, typeof(T).Name));
 
-        private DateTime _dateModified = DateTime.MinValue.ToUniversalTime();//JSON doesn't accept 01/01/0001
+        private DateTime _lastUpdate = DateTime.MinValue.ToUniversalTime();//JSON doesn't accept 01/01/0001
 
         public static DirectoryInfo DefaultDirectory
         {
@@ -69,10 +69,10 @@ namespace NoSqlJsonFileProject
         public static bool SaveOptimizationEnable { get { return false; } }
 
         [DataMember]
-        public DateTime DateModified
+        public DateTime LastUpdate
         {
-            get { return _dateModified; }
-            set { _dateModified = value; }
+            get { return _lastUpdate; }
+            set { _lastUpdate = value; }
         }
 
         /// <summary>
@@ -140,6 +140,8 @@ namespace NoSqlJsonFileProject
                    .GetMethod("Deserialize", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
                    .Invoke(obj, null);
             CopyObject(val, ref obj);
+            obj.GetType().GetProperty("LastUpdate").SetValue(obj, DateTime.Now, null);
+
             var rootQueue = new Queue<object>();
             EnqueueChildren(obj, rootQueue);
             while (rootQueue.Count > 0)
@@ -148,12 +150,11 @@ namespace NoSqlJsonFileProject
 
                 if (ReflectionBaseTypeCompare(next.GetType(), typeof(NoSqlJsonFile<>)))
                 {
-                    object newObj =
-                   next.GetType()
-                       .GetMethod("Deserialize",
-                                  BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
-                       .Invoke(next, null);
+                    object newObj = next.GetType().
+                        GetMethod("Deserialize", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
+                        .Invoke(next, null);
                     CopyObject(newObj, ref next);
+                    next.GetType().GetProperty("LastUpdate").SetValue(next, DateTime.Now, null);
 
                 }
 
@@ -394,13 +395,13 @@ namespace NoSqlJsonFileProject
                 bool exists = (bool) t.GetType().GetMethod("Exists", new Type[] { }).Invoke(t, null);
                 if (exists)
                 {
-                    t.GetType().GetMethod("Get", new Type[] {}).Invoke(t, null);
+                    t.GetType().GetMethod("Get", new Type[] { }).Invoke(t, null);
 
-                    DateTime masterCopy = (DateTime) t.GetType().GetProperty("DateModified").GetValue(t, null);
-                    DateTime slaveCopy = (DateTime) obj.GetType().GetProperty("DateModified").GetValue(obj, null);
-                    if (masterCopy.CompareTo(slaveCopy) <= 0)
+                    DateTime masterDate = (DateTime) t.GetType().GetProperty("LastUpdate").GetValue(t, null);
+                    DateTime shadowDate = (DateTime) obj.GetType().GetProperty("LastUpdate").GetValue(obj, null);
+                    if (masterDate.CompareTo(shadowDate) > 0)
                     {
-                        obj.GetType().GetProperty("DateModified").SetValue(obj, DateTime.Now, null);
+                        obj.GetType().GetProperty("LastUpdate").SetValue(obj, DateTime.Now, null);
 
                         obj.GetType()
                            .GetMethod("Serialize",
@@ -410,13 +411,13 @@ namespace NoSqlJsonFileProject
                 }
                 else
                 {
-                  obj.GetType().GetProperty("DateModified").SetValue(obj, DateTime.Now, null);
+                    obj.GetType().GetProperty("LastUpdate").SetValue(obj, DateTime.Now, null);
 
-                  obj.GetType()
-                     .GetMethod("Serialize", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
-                     .Invoke(obj, null);
+                    obj.GetType()
+                       .GetMethod("Serialize", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
+                       .Invoke(obj, null);
                 }
-               
+
             }
         }
 
