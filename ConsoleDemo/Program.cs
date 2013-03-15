@@ -20,6 +20,16 @@ namespace ConsoleDemo
         }
     }
 
+    [DataContract]
+    class MyClass :NoSqlJsonFile<MyClass>
+    {
+        [DataMember]
+        List<NoneTypeTest> NoneTypeTest { get; set; }
+    }
 
+    class NoneTypeTest
+    {
+        
+    }
     
 }

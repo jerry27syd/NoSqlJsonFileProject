@@ -75,22 +75,11 @@ namespace WindowsFormsApplicationDemo
                 }
             };
             #endregion
-
-            checkedListBox1.DataSource = productBindingSource.DataSource;
-            checkedListBox1.DisplayMember = "ProductName";
-            checkedListBox1.ValueMember = "UniqueId";
+            
         }
 
         private void purchaseButton_Click(object sender, EventArgs e)
         {
-            var x = comboBox2.SelectedItem as Customer;
-            var o = x.CreateNewOrder();
-
-            foreach (Product item in checkedListBox1.Items)
-            {
-                o.AddProductDetail(item, 100, 1);
-            }
-            x.Save();
         }
 
 
