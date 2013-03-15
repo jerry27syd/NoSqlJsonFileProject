@@ -1,0 +1,96 @@
+#region Generated - Form1_Script.ccc
+deleteAllToolStripMenuItem.Click += delegate
+{
+
+Customer.DeleteAll();
+
+Product.DeleteAll();
+
+OrderDetail.DeleteAll();
+
+Order.DeleteAll();
+
+dataGridView1.EndEdit();
+customerBindingSource.DataSource = Customer.List();
+
+dataGridView2.EndEdit();
+productBindingSource.DataSource = Product.List();
+
+dataGridView3.EndEdit();
+orderDetailBindingSource.DataSource = OrderDetail.List();
+
+dataGridView4.EndEdit();
+orderBindingSource.DataSource = Order.List();
+};
+refreshToolStripMenuItem.Click += delegate
+{
+
+dataGridView1.EndEdit();
+customerBindingSource.DataSource = Customer.List();
+
+dataGridView2.EndEdit();
+productBindingSource.DataSource = Product.List();
+
+dataGridView3.EndEdit();
+orderDetailBindingSource.DataSource = OrderDetail.List();
+
+dataGridView4.EndEdit();
+orderBindingSource.DataSource = Order.List();
+};
+
+dataGridView1.EndEdit();
+customerBindingSource.DataSource = Customer.List();
+
+dataGridView2.EndEdit();
+productBindingSource.DataSource = Product.List();
+
+dataGridView3.EndEdit();
+orderDetailBindingSource.DataSource = OrderDetail.List();
+
+dataGridView4.EndEdit();
+orderBindingSource.DataSource = Order.List();
+
+dataGridView1.CellEndEdit += delegate
+{
+var currentRow = dataGridView1.CurrentRow;
+if (currentRow == null) return;
+var customer = currentRow.DataBoundItem as Customer;
+if (customer != null)
+{
+customer.Save();
+}
+};
+
+dataGridView2.CellEndEdit += delegate
+{
+var currentRow = dataGridView2.CurrentRow;
+if (currentRow == null) return;
+var product = currentRow.DataBoundItem as Product;
+if (product != null)
+{
+product.Save();
+}
+};
+
+dataGridView3.CellEndEdit += delegate
+{
+var currentRow = dataGridView3.CurrentRow;
+if (currentRow == null) return;
+var orderDetail = currentRow.DataBoundItem as OrderDetail;
+if (orderDetail != null)
+{
+orderDetail.Save();
+}
+};
+
+dataGridView4.CellEndEdit += delegate
+{
+var currentRow = dataGridView4.CurrentRow;
+if (currentRow == null) return;
+var order = currentRow.DataBoundItem as Order;
+if (order != null)
+{
+order.Save();
+}
+};
+#endregion

@@ -1,0 +1,55 @@
+$!
+var result = "";
+var result2 ="";
+var result3 ="";
+var result4 ="";
+var r1 =
+@"
+customerBindingSource.DataSource = Customer.List();
+";
+var r2 =
+@" 
+   dataGridView1.CellEndEdit += delegate
+				{
+					var currentRow = dataGridView1.CurrentRow;
+					if (currentRow == null) return;
+					var customer = currentRow.DataBoundItem as Customer;
+					if (customer != null)
+					{
+						customer.Save();
+					}
+				};
+";
+var r3 =
+@"
+Customer.DeleteAll();
+";
+var items = new []
+{
+	new []{"Customer","customer"},
+	new []{"Product","product"},
+	new []{"OrderDetail","orderDetail"},
+	new []{"Order","order"},
+};
+var i = 1;
+foreach(var item in items){
+	result += r1.Replace("Customer",item[0]).Replace("customer",item[1]).Replace("1",i+"");
+	result2 += r2.Replace("Customer",item[0]).Replace("customer",item[1]).Replace("1",i+"");
+	result3+= r3.Replace("Customer",item[0]).Replace("customer",item[1]);
+	i++;
+}
+
+!$
+#region Generated - Form1_Script.ccc
+deleteAllToolStripMenuItem.Click += delegate
+{
+$!=result3!$
+$!=result!$
+};
+refreshToolStripMenuItem.Click += delegate
+{
+$!=result!$
+};
+$!=result!$
+$!=result2!$
+#endregion

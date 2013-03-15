@@ -38,7 +38,10 @@ namespace NoSqlJsonFileProject
         /// <summary>
         /// By default, alll files are stored under NoSqlJsonFiles\YourClass.
         /// </summary>
-        private static  DirectoryInfo _defaultDirectory = new DirectoryInfo(Path.Combine(FILE_PATH, typeof(T).Name));
+        private static DirectoryInfo _defaultDirectory = new DirectoryInfo(Path.Combine(FILE_PATH, typeof(T).Name));
+
+        private DateTime _dateModified = DateTime.MinValue.ToUniversalTime();//JSON doesn't accept 01/01/0001
+
         public static DirectoryInfo DefaultDirectory
         {
             get { return _defaultDirectory; }
@@ -50,7 +53,6 @@ namespace NoSqlJsonFileProject
         /// </summary>
         public NoSqlJsonFile()
         {
-            DateModfied = DateTime.Now;
             UniqueId = GetType().Name + Guid.NewGuid().ToString().Replace("-", "").ToUpper();// for instnace: Employee94554F9D47E0425B97EBC13614F36CD5
         }
 
@@ -59,19 +61,19 @@ namespace NoSqlJsonFileProject
         /// </summary>
         static NoSqlJsonFile()
         {
-            SaveOptimizationEnable = false;
         }
-        
+
         /// <summary>
         /// Experiment Feature.
         /// </summary>
-        public static bool SaveOptimizationEnable { get; set; }
+        public static bool SaveOptimizationEnable { get { return false; } }
 
-        /// <summary>
-        ///  Internal Date Stamp.
-        /// </summary>
         [DataMember]
-        public DateTime DateModfied { get; set; }
+        public DateTime DateModified
+        {
+            get { return _dateModified; }
+            set { _dateModified = value; }
+        }
 
         /// <summary>
         ///  UniqueId is a unique number for each file created.
@@ -79,10 +81,6 @@ namespace NoSqlJsonFileProject
         [DataMember]
         public string UniqueId { get; set; }
 
-        /// <summary>
-        /// This feature is for experiment. 
-        /// </summary>
-        public bool Modified { get; set; }
 
         public FileInfo GetUniqueFile()
         {
@@ -138,8 +136,7 @@ namespace NoSqlJsonFileProject
 
         protected static void GetBreathFirst(object obj)
         {
-            object val =
-                obj.GetType()
+            object val = obj.GetType()
                    .GetMethod("Deserialize", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
                    .Invoke(obj, null);
             CopyObject(val, ref obj);
@@ -344,25 +341,13 @@ namespace NoSqlJsonFileProject
         #region Save
         public static void Save(NoSqlJsonFile<T> t)
         {
-            t.DateModfied = DateTime.Now;
-            SaveRecursive(t, false);
+            SaveRecursive(t);
         }
 
         public void Save()
         {
-            DateModfied = DateTime.Now;
-            SaveRecursive(this, false);
+            SaveRecursive(this);
             if (SaveOptimizationEnable) Get();
-        }
-
-        public void SaveIfModified()
-        {
-            SaveRecursive(this, true);
-            if (SaveOptimizationEnable) Get();
-        }
-        public static void SaveIfModified(NoSqlJsonFile<T> t)
-        {
-            SaveRecursive(t, true);
         }
 
         /// <summary>
@@ -370,7 +355,7 @@ namespace NoSqlJsonFileProject
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="checkModified"></param>
-        protected static void SaveRecursive(object obj, bool checkModified)
+        private static void SaveRecursive(object obj)
         {
             //if base type is DataEntity, then we treat it as entity
             if (ReflectionBaseTypeCompare(obj.GetType(), typeof(NoSqlJsonFile<>)))
@@ -382,12 +367,13 @@ namespace NoSqlJsonFileProject
                         object item = propertyInfo.GetValue(obj, null);
                         if (item != null)
                         {
-                            SaveRecursive(item, checkModified);
+                            SaveRecursive(item);
                             // Clean Entity content at current depth  
                             if (SaveOptimizationEnable) CleanEntityContent(item);
                         }
                     }
-                    else if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(List<>)) ||
+                    else if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(IEnumerable<>)) ||
+                             ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(List<>)) ||
                              ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(ObservableCollection<>)))
                     {
                         var list = (IList) propertyInfo.GetValue(obj, null);
@@ -395,32 +381,42 @@ namespace NoSqlJsonFileProject
                         {
                             foreach (object item in list)
                             {
-                                SaveRecursive(item, checkModified);
+                                SaveRecursive(item);
                                 // Clean Entity content at current depth  
                                 if (SaveOptimizationEnable) CleanEntityContent(item);
                             }
                         }
                     }
                 }
-
-                if (checkModified)
+                //Update with the newest copy only
+                object t = Activator.CreateInstance(obj.GetType());
+                t.GetType().GetProperty("UniqueId").SetValue(t, obj.GetType().GetProperty("UniqueId").GetValue(obj, null), null);
+                bool exists = (bool) t.GetType().GetMethod("Exists", new Type[] { }).Invoke(t, null);
+                if (exists)
                 {
-                    var modified = (bool) obj.GetType().GetProperty("Modified").GetValue(obj, null);
-                    if (modified)
+                    t.GetType().GetMethod("Get", new Type[] {}).Invoke(t, null);
+
+                    DateTime masterCopy = (DateTime) t.GetType().GetProperty("DateModified").GetValue(t, null);
+                    DateTime slaveCopy = (DateTime) obj.GetType().GetProperty("DateModified").GetValue(obj, null);
+                    if (masterCopy.CompareTo(slaveCopy) <= 0)
                     {
+                        obj.GetType().GetProperty("DateModified").SetValue(obj, DateTime.Now, null);
+
                         obj.GetType()
-                            .GetMethod("Serialize",
-                                       BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
-                            .Invoke(obj, null);
+                           .GetMethod("Serialize",
+                                      BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
+                           .Invoke(obj, null);
                     }
                 }
                 else
                 {
-                    obj.GetType()
-                       .GetMethod("Serialize",
-                                  BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
-                       .Invoke(obj, null);
+                  obj.GetType().GetProperty("DateModified").SetValue(obj, DateTime.Now, null);
+
+                  obj.GetType()
+                     .GetMethod("Serialize", BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.NonPublic)
+                     .Invoke(obj, null);
                 }
+               
             }
         }
 
@@ -437,8 +433,7 @@ namespace NoSqlJsonFileProject
 
         public static void Delete(string uniqueId)
         {
-            FileInfo fileId = GetUniqueFile(uniqueId);
-            fileId.Delete();
+            GetUniqueFile(uniqueId).Delete();
         }
 
         public void DeleteCascade()
@@ -474,7 +469,8 @@ namespace NoSqlJsonFileProject
                             DeleteRecursive(item);
                         }
                     }
-                    else if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(List<>)) ||
+                    else if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(IEnumerable<>)) ||
+                             ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(List<>)) ||
                              ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(ObservableCollection<>)))
                     {
                         var list = (IList) propertyInfo.GetValue(obj, null);
@@ -497,13 +493,15 @@ namespace NoSqlJsonFileProject
         /// <summary>
         /// Delete All will delete all files for a signle calss. Note: it does not do any cascading delete, it simply just deletes a directory.
         /// </summary>
-        public static void DeleteAll()
+        public static bool DeleteAll()
         {
             DirectoryInfo dir = DefaultDirectory;
-            foreach (FileInfo fileId in dir.GetFiles())
+            if (!dir.Exists) return false;
+            foreach (FileInfo uniqueFile in dir.GetFiles())
             {
-                fileId.Delete();
+                uniqueFile.Delete();
             }
+            return true;
         }
 
         #endregion
@@ -528,33 +526,24 @@ namespace NoSqlJsonFileProject
 
         protected static object DeserializeFromFile(object obj, FileInfo fileId)
         {
-            object newObj = JsonToObject(File.ReadAllText(fileId.FullName), obj.GetType());
-            return newObj;
+            return JsonToObject(File.ReadAllText(fileId.FullName), obj.GetType());
         }
 
-        public static string ToJson(object value)
+        public static string ToJson(object obj)
         {
-            if (value == null)
-            {
-                return null;
-            }
-
-            var serializer = new DataContractJsonSerializer(value.GetType());
+            if (obj == null) return null;
+            var serializer = new DataContractJsonSerializer(obj.GetType());
             using (var dataInMemory = new MemoryStream())
             {
-                serializer.WriteObject(dataInMemory, value);
+                serializer.WriteObject(dataInMemory, obj);
                 return Encoding.Default.GetString(dataInMemory.ToArray());
             }
         }
 
-        public static object JsonToObject(string xml, Type t)
+        public static object JsonToObject(string fileContent, Type t)
         {
-            if (xml == null || t == null)
-            {
-                return null;
-            }
-
-            using (var dataInMemory = new MemoryStream(Encoding.Default.GetBytes(xml)))
+            if (fileContent == null || t == null) return null;
+            using (var dataInMemory = new MemoryStream(Encoding.Default.GetBytes(fileContent)))
             {
                 return new DataContractJsonSerializer(t).ReadObject(dataInMemory);
             }
@@ -579,7 +568,8 @@ namespace NoSqlJsonFileProject
                         CleanEntityContentRecursive(item);
                     }
                 }
-                else if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(List<>)) ||
+                else if (ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(IEnumerable<>)) ||
+                         ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(List<>)) ||
                          ReflectionBaseTypeCompare(propertyInfo.PropertyType, typeof(ObservableCollection<>)))
                 {
                     IList list = (IList) propertyInfo.GetValue(obj, null);
@@ -605,6 +595,10 @@ namespace NoSqlJsonFileProject
         {
             if (type.IsValueType)
             {
+                if (ReflectionBaseTypeCompare(type, typeof(DateTime)))
+                {
+                    return DateTime.MinValue.ToUniversalTime();//JSON doesn't accept 01/01/0001
+                }
                 return Activator.CreateInstance(type);
             }
             return null;

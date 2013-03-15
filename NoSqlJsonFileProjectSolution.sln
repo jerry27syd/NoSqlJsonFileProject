@@ -5,6 +5,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoSqlJsonFileProject", "NoS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleDemo", "ConsoleDemo\ConsoleDemo.csproj", "{B3C08643-1AF3-4480-BBCB-C92FE90673B4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsFormsApplicationDemo", "WindowsFormsApplicationDemo\WindowsFormsApplicationDemo.csproj", "{DCB7F05F-55BD-43BC-8409-7053BA3E92CB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{35AEEAD7-8F42-47EF-827F-61B837D95997}"
+	ProjectSection(SolutionItems) = preProject
+		ProjectScripts\Form1_Script.ccc = ProjectScripts\Form1_Script.ccc
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +26,10 @@ Global
 		{B3C08643-1AF3-4480-BBCB-C92FE90673B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3C08643-1AF3-4480-BBCB-C92FE90673B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B3C08643-1AF3-4480-BBCB-C92FE90673B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCB7F05F-55BD-43BC-8409-7053BA3E92CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCB7F05F-55BD-43BC-8409-7053BA3E92CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCB7F05F-55BD-43BC-8409-7053BA3E92CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCB7F05F-55BD-43BC-8409-7053BA3E92CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
