@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		ProjectScripts\Form1_Script.ccc = ProjectScripts\Form1_Script.ccc
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersonalBudgetWPFApplicationDemo", "PersonalBudgetWPFApplicationDemo\PersonalBudgetWPFApplicationDemo.csproj", "{4CBC15BF-3402-4C3E-9004-0684C97BEB56}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,6 +32,10 @@ Global
 		{DCB7F05F-55BD-43BC-8409-7053BA3E92CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCB7F05F-55BD-43BC-8409-7053BA3E92CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCB7F05F-55BD-43BC-8409-7053BA3E92CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CBC15BF-3402-4C3E-9004-0684C97BEB56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CBC15BF-3402-4C3E-9004-0684C97BEB56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CBC15BF-3402-4C3E-9004-0684C97BEB56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CBC15BF-3402-4C3E-9004-0684C97BEB56}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

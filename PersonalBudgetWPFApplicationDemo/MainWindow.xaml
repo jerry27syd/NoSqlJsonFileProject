@@ -1,0 +1,22 @@
+﻿<Window x:Class="PersonalBudgetWPFApplicationDemo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="379" Width="460">
+    <Canvas>
+        <Label Content="Item" Canvas.Left="34" Canvas.Top="48" RenderTransformOrigin="-0.03,0.609" />
+        <Label Content="FromDate" Canvas.Left="34" Canvas.Top="76" RenderTransformOrigin="0.707,-0.435" />
+        <Label Content="ToDate" Canvas.Left="34" Canvas.Top="104" />
+        <Label Content="CurrentDate" Canvas.Left="34" Canvas.Top="20" />
+        <Label Content="Amount" Canvas.Left="34" Canvas.Top="132" RenderTransformOrigin="0.5,0.478" />
+        <Label Content="Status" Canvas.Left="34" Canvas.Top="160" />
+        <TextBox Height="23" Canvas.Left="129" TextWrapping="Wrap" x:Name="ItemTextBox" Text="" Canvas.Top="48" Width="120"/>
+        <TextBox Height="23" Canvas.Left="129" TextWrapping="Wrap" x:Name="FromDateBox" Text="" Canvas.Top="76" Width="120"/>
+        <TextBox Height="23" Canvas.Left="129" TextWrapping="Wrap" x:Name="ToDateBox" Text="" Canvas.Top="104" Width="120"/>
+        <TextBox Height="23" Canvas.Left="129" TextWrapping="Wrap" x:Name="CurrentDateBox" Text="" Canvas.Top="20" Width="120"/>
+        <TextBox Height="23" Canvas.Left="129" TextWrapping="Wrap" x:Name="AmountBox" Text="" Canvas.Top="132" Width="120"/>
+        <TextBox Height="23" Canvas.Left="129" TextWrapping="Wrap" x:Name="StatusBox" Text="" Canvas.Top="160" Width="120"/>
+        <Button Content="Save" Canvas.Left="174" Canvas.Top="202" Width="75" RenderTransformOrigin="0.28,0.15" x:Name="SaveButton" Click="SaveButton_OnClick"/>
+        <DataGrid x:Name="PbDataGrid" RenderTransformOrigin="0.5,0.5" Canvas.Left="40" Canvas.Top="252" CanUserDeleteRows="False" CanUserAddRows="False" >
+        </DataGrid>
+    </Canvas>
+</Window>
