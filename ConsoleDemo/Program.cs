@@ -9,27 +9,44 @@ using NoSqlJsonFileProject;
 
 namespace ConsoleDemo
 {
-    class Program
-    {
-        static void Main(string[] args)
+    internal class Program
+    {   
+        private static void Main(string[] args)
         {
+            var student = new Student {Email = "jerry27syd@gmail.com", FirstName = "Jerry", LastName = "Liang"};
 
-            
+
+            var x = Subject.List();
+
+            Subject subject = new Subject {Title1 = "Math",};
+            subject.Save();
 
             Console.ReadKey();
         }
     }
 
     [DataContract]
-    class MyClass :NoSqlJsonFile<MyClass>
+    internal class Student : NoSqlJsonFile<Student>
     {
         [DataMember]
-        List<NoneTypeTest> NoneTypeTest { get; set; }
+        public string FirstName { get; set; }
+
+        [DataMember]
+        public string LastName { get; set; }
+
+        [DataMember]
+        public string Email { get; set; }
+
+        [DataMember]
+        public List<Guid> SubjectId { get; set; }
     }
 
-    class NoneTypeTest
+    [DataContract]
+    internal class Subject : NoSqlJsonFile<Subject>
     {
-        
+        [DataMember]
+        public string Title1 { get; set; }
+        [DataMember]
+        public List<Guid> SubjectId { get; set; }
     }
-    
 }
